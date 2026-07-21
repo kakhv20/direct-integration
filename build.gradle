@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+ext {
+    springCloudVersion = "2025.0.2"
+}
+
+group = 'ge.xcoder.playcore'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+		exceptionFormat 'full'
+	}
+}
+
+def registryUrl = System.getenv("REGISTRY_URL") ?: "N/A"
+def registryPath = System.getenv("REGISTRY_PATH") ?: "N/A"
+def projectName = System.getenv("PROJECT_NAME") ?: "N/A"
+def environmentName = System.getenv("ENVIRONMENT_NAME") ?: "N/A"
+def commitSha = System.getenv("CI_COMMIT_SHORT_SHA") ?: "N/A"
+def registryUser = System.getenv("REGISTRY_USER") ?: "N/A"
+def registryPass = System.getenv("REGISTRY_PASS") ?: "N/A"
+def builderImage = System.getenv("BUILDER_IMAGE") ?: "harbor.4rest.io/dev/king-rocket/builder-jammy-tiny:0.0.485"
+def runImageName = System.getenv("RUN_IMAGE") ?: "harbor.4rest.io/dev/king-rocket/run-jammy-tiny:0.2.132"
+
+def imageVersion = "${version}-${commitSha}"
+def image = "${registryUrl}/${registryPath}/${projectName}:${environmentName}-${imageVersion}"
+
+bootBuildImage {
+    builder = builderImage
+    runImage = runImageName
+    imageName = image
+    publish = true
+    docker {
+        builderRegistry {
+            username = registryUser
+            password = registryPass
+        }
+        publishRegistry {
+            username = registryUser
+            password = registryPass
+        }
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
+tasks.register('postImageBuild') {
+    doLast {
+        println "EXPORT_VAR=DOCKER_IMAGE=${image}"
+    }
+
+}
+
+postImageBuild.dependsOn(bootBuildImage)

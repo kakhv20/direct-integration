@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: direct_integration
+
+app:
+  api-prefix: "/api"
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: ${app.api-prefix}/v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: ${app.api-prefix}/swagger-ui.html
+

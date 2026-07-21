@@ -1,0 +1,718 @@
+openapi: 3.0.3
+info:
+  title: OptimoPlay Integration Service API
+  description: |
+    Seamless Wallet API for game aggregation platform.
+    All requests must include authorization headers (X-Operator-Id, X-Timestamp, X-Nonce, X-Sign).
+    The operator is identified exclusively via the X-Operator-Id header. There is no operator field in the request body.
+  version: 1.1.0
+  contact:
+    name: Integration Support
+
+servers:
+  - url: https://game-aggregator.com/api/v1
+    description: Production
+
+security:
+  - OperatorAuth: []
+
+paths:
+  /seamless/launch/url:
+    post:
+      tags:
+        - Game Launch
+      summary: Get game launch URL
+      description: Returns a ready-to-use launch URL for a specific game.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchRequest'
+            example:
+              user_id: "1234"
+              game_id: king_move
+              mode: real
+              currency: EUR
+              lang: en
+              platform: desktop
+              ip: "127.0.0.1"
+              exit_url: https://operator.com/lobby
+              error_url: https://operator.com/error
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+              extra_params:
+                fullscreen: true
+                customparameter: custom value
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchResponse'
+              example:
+                result_code: 0
+                session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+                launch_url: https://games.optimo-rgs.com/optimo-play/launch?token=ab12cd34&game_id=king_move&lang=en&mode=real
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/player/info:
+    post:
+      tags:
+        - Player
+      summary: Get player info
+      description: Get player info from operator system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerInfoRequest'
+            example:
+              user_id: "1234"
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerInfoResponse'
+              example:
+                result_code: 0
+                user_name: Test1
+                country: GE
+                date_of_birth: "1999-01-01"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/balance:
+    post:
+      tags:
+        - Wallet
+      summary: Get player balance
+      description: Returns the player's current balance in the operator system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceRequest'
+            example:
+              user_id: "1234"
+              currency: USD
+              game_id: king_move
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+              example:
+                result_code: 0
+                balance: 57.12
+                currency: USD
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/bet:
+    post:
+      tags:
+        - Wallet
+      summary: Place a bet
+      description: Used when player places a bet.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BetRequest'
+            example:
+              timestamp: 1730379235000
+              bet_type: BET
+              user_id: "1234"
+              amount: 1.00
+              currency: USD
+              game_id: king_move
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+              transaction_id: B112233
+              round_id: SBR001
+              attributes:
+                test1: test value1
+                test2: test value2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionalWalletResponse'
+              example:
+                result_code: 0
+                balance: 56.12
+                currency: USD
+                transaction_id: B112233
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/win:
+    post:
+      tags:
+        - Wallet
+      summary: Award a win
+      description: |
+        Used when player wins.
+
+        **Rules:**
+        - When `win_type` is `WIN` or `FREEBET_WIN`, the `parent_transaction_id` references the originating bet. If the referenced bet does **not** exist, the Operator must **not** credit the win. Return `result_code: 1011` (`Bet not found`).
+        - A bet can only have one corresponding win. If a win with a different `transaction_id` references a `parent_transaction_id` that already has a recorded win, the Operator **should** reject with `result_code: 1011`. Nice-to-have safety net: the aggregator already derives Win `transaction_id` deterministically from the bet, so retries reuse the same txid and are caught by the standard `transaction_id` idempotency check; this parent-reference guard is defense in depth.
+        - When `win_type` is `JACKPOT`, `parent_transaction_id` is `null` — no bet lookup is required.
+        - If the round has already been closed (`round_finished = 1`), the Operator must reject with `result_code: 1008` (`Invalid round`).
+        - Win may arrive after the game session has ended. The Operator must not reject a win due to an expired or inactive session.
+        - All win calls are idempotent by `transaction_id`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WinRequest'
+            example:
+              timestamp: 1730379235000
+              win_type: WIN
+              user_id: "1234"
+              amount: 1.00
+              currency: USD
+              game_id: king_move
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+              transaction_id: W112234
+              parent_transaction_id: B112233
+              round_id: SBR001
+              round_finished: 1
+              attributes:
+                test1: test value1
+                test2: test value2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionalWalletResponse'
+              example:
+                result_code: 0
+                balance: 61.12
+                currency: USD
+                transaction_id: W112234
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/rollback:
+    post:
+      tags:
+        - Wallet
+      summary: Rollback a bet
+      description: |
+        Used to refund a failed or invalid bet.
+
+        **Rules:**
+        - If bet exists, no win, round open: refund the bet. Return `result_code: 0`.
+        - If `parent_transaction_id` not found: return `result_code: 1011` (`Bet not found`).
+        - If bet already has a corresponding win or round is closed: return `result_code: 1017` (`Bet already settled`).
+        - All calls are idempotent by `transaction_id`.
+        - Rollback may arrive after the game session has ended — the Operator must not reject due to an expired session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RollbackRequest'
+            example:
+              timestamp: 1730379235000
+              user_id: "1234"
+              game_id: king_move
+              session_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+              transaction_id: R112234
+              parent_transaction_id: B112233
+              round_id: SBR001
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RollbackResponse'
+              example:
+                result_code: 0
+                balance: 57.12
+                currency: USD
+                transaction_id: R112234
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /seamless/round/info:
+    post:
+      tags:
+        - Wallet
+      summary: Round info
+      description: Used to inform operator about round summary info.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoundInfoRequest'
+            example:
+              game_id: king_move
+              round_id: SBR001
+              attributes:
+                crash-point: "11.23"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundInfoResponse'
+              example:
+                result_code: 0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    OperatorAuth:
+      type: apiKey
+      in: header
+      name: X-Operator-Id
+      description: |
+        All requests require the following headers:
+        - **X-Operator-Id** — Operator identifier, constant per operator/environment. Sole mechanism for identifying the calling operator.
+        - **X-Timestamp** — Unix timestamp (seconds), ±30s drift allowed
+        - **X-Nonce** — Random unique string per request
+        - **X-Sign** — HMAC-SHA1 signature (see Security section)
+
+  schemas:
+    # ── Game Launch ──
+    LaunchRequest:
+      type: object
+      required:
+        - user_id
+        - currency
+        - game_id
+        - mode
+        - lang
+        - platform
+        - ip
+      properties:
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+        currency:
+          type: string
+          description: Currency code in ISO 4217 format (e.g. EUR, USD, GEL).
+        game_id:
+          type: string
+          description: Unique game identifier.
+        mode:
+          type: string
+          enum: [real, demo]
+          description: "Game mode. Allowed values: real, demo."
+        lang:
+          type: string
+          description: Game UI language in ISO 639-1 format (e.g. en, ka).
+        platform:
+          type: string
+          enum: [desktop, mobile]
+          description: "Target platform. Allowed values: desktop, mobile."
+        ip:
+          type: string
+          description: Player's IPv4 or IPv6 address. Used for operator-side security and geo checks.
+        exit_url:
+          type: string
+          description: Absolute URL the player is redirected to when exiting the game.
+        error_url:
+          type: string
+          description: Absolute URL the player is redirected to on a critical game error.
+        session_id:
+          type: string
+          description: Operator-defined session identifier. If provided, this value will be used as session_id in all subsequent wallet callbacks. If omitted, a new session ID is generated.
+        extra_params:
+          type: object
+          additionalProperties: true
+          description: Flat key-value map of operator-specific or game-specific parameters. All values must be JSON primitives. Appended to the final launch URL as query parameters.
+
+    LaunchResponse:
+      type: object
+      required:
+        - result_code
+        - launch_url
+        - session_id
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        launch_url:
+          type: string
+          description: Fully constructed game URL ready for browser redirect or iframe embedding. No additional query parameters are required.
+        session_id:
+          type: string
+          description: Canonical session identifier for this game session. This exact value will appear in the session_id field of all subsequent wallet callbacks (bet, win, rollback, balance).
+
+    # ── Player Info ──
+    PlayerInfoRequest:
+      type: object
+      required:
+        - session_id
+        - user_id
+      properties:
+        session_id:
+          type: string
+          description: Active game session identifier.
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+
+    PlayerInfoResponse:
+      type: object
+      required:
+        - result_code
+        - user_name
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        user_name:
+          type: string
+          description: Unique, stable player username in the Operator system. Used as the primary player identifier. Must not change for a given player.
+        country:
+          type: string
+          description: Player's country code in ISO 3166-1 alpha-2 format (e.g. GE, US), if available.
+        date_of_birth:
+          type: string
+          description: Player's date of birth in ISO 8601 format (YYYY-MM-DD), if available.
+
+    # ── Balance ──
+    BalanceRequest:
+      type: object
+      required:
+        - user_id
+        - currency
+        - game_id
+        - session_id
+      properties:
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+        currency:
+          type: string
+          description: Currency code in ISO 4217 format.
+        game_id:
+          type: string
+          description: Unique game identifier.
+        session_id:
+          type: string
+          description: Active game session identifier.
+
+    BalanceResponse:
+      type: object
+      required:
+        - result_code
+        - balance
+        - currency
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        message:
+          type: string
+          description: Descriptive error message. Present only when result_code is non-zero.
+        balance:
+          type: number
+          description: Player's current balance in the requested currency.
+        currency:
+          type: string
+          description: Currency of the returned balance. Must match the request currency.
+
+    # ── Bet ──
+    BetRequest:
+      type: object
+      required:
+        - timestamp
+        - bet_type
+        - user_id
+        - amount
+        - currency
+        - game_id
+        - session_id
+        - transaction_id
+        - round_id
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix epoch timestamp in milliseconds indicating when the bet was recorded on the RGS side. Used as the authoritative date/time for reporting and reconciliation.
+        bet_type:
+          type: string
+          description: "Type of bet. Known values: `BET` (standard real-money bet), `FREEBET` (free-bet bonus). New values may be introduced — operators will be notified via changelog. Implementations should accept unknown values gracefully."
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+        amount:
+          type: number
+          description: "Bet amount in the specified currency. When building the X-Sign signature, this value must be normalized to the currency's precision scale (e.g. amount=1.00 for USD, even if the JSON contains 1 or 1.0)."
+        currency:
+          type: string
+          description: Currency code in ISO 4217 format.
+        game_id:
+          type: string
+          description: Unique game identifier.
+        session_id:
+          type: string
+          description: Active game session identifier.
+        transaction_id:
+          type: string
+          description: Unique transaction identifier (unique per operator + game).
+        round_id:
+          type: string
+          description: Unique game round identifier.
+        gift_id:
+          type: string
+          description: Gift/bonus campaign identifier. When present, related campaign details are included in attributes.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value map of additional game-specific metadata. Excluded from signature calculation.
+
+    # ── Win ──
+    WinRequest:
+      type: object
+      required:
+        - timestamp
+        - win_type
+        - user_id
+        - amount
+        - currency
+        - game_id
+        - session_id
+        - transaction_id
+        - round_id
+        - round_finished
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix epoch timestamp in milliseconds indicating when the win was recorded on the RGS side. Used as the authoritative date/time for reporting and reconciliation.
+        win_type:
+          type: string
+          description: "Type of win. Known values: `WIN` (standard win), `FREEBET_WIN` (free-bet bonus win), `JACKPOT` (jackpot payout). New values may be introduced — operators will be notified via changelog. Implementations should accept unknown values gracefully."
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+        amount:
+          type: number
+          description: "Win amount in the specified currency. When building the X-Sign signature, this value must be normalized to the currency's precision scale (e.g. amount=1.00 for USD, even if the JSON contains 1 or 1.0)."
+        currency:
+          type: string
+          description: Currency code in ISO 4217 format.
+        game_id:
+          type: string
+          description: Unique game identifier.
+        session_id:
+          type: string
+          description: Game session identifier. The session may no longer be active at the time of win (e.g. due to late settlement, retries, or reconciliation). The Operator must not reject a win due to an expired or inactive session.
+        transaction_id:
+          type: string
+          description: Unique transaction identifier (unique per operator + game).
+        parent_transaction_id:
+          type: string
+          description: The transaction_id of the originating bet. Sent when win_type is WIN or FREEBET_WIN; null otherwise (e.g. for JACKPOT).
+        round_id:
+          type: string
+          description: Unique game round identifier. The Operator must reject the request if the round has already been closed.
+        round_finished:
+          type: integer
+          description: "Indicates whether this is the final action in the round. 1 = round is now closed — no further bet, win, or rollback requests with this round_id are permitted. 0 = round remains open."
+        gift_id:
+          type: string
+          description: Gift/bonus campaign identifier. When present, related campaign details are included in attributes.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value map of additional game-specific metadata. Excluded from signature calculation.
+
+    # ── Rollback ──
+    RollbackRequest:
+      type: object
+      required:
+        - timestamp
+        - user_id
+        - game_id
+        - session_id
+        - transaction_id
+        - parent_transaction_id
+        - round_id
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix epoch timestamp in milliseconds indicating when the rollback was recorded on the RGS side. Used as the authoritative date/time for reporting and reconciliation.
+        user_id:
+          type: string
+          description: Player identifier in the Operator system.
+        game_id:
+          type: string
+          description: Unique game identifier.
+        session_id:
+          type: string
+          description: Game session identifier. The session may no longer be active at the time of rollback. The Operator must not reject a rollback due to an expired or inactive session.
+        transaction_id:
+          type: string
+          description: Unique rollback transaction identifier.
+        parent_transaction_id:
+          type: string
+          description: The transaction_id of the original bet to reverse.
+        round_id:
+          type: string
+          description: Game round identifier.
+        gift_id:
+          type: string
+          description: Gift/bonus campaign identifier. When present, related campaign details are included in attributes.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value map of additional game-specific metadata. Excluded from signature calculation.
+
+    # ── Round Info ──
+    RoundInfoRequest:
+      type: object
+      required:
+        - game_id
+        - round_id
+      properties:
+        game_id:
+          type: string
+          description: Unique game identifier.
+        round_id:
+          type: string
+          description: Game round identifier.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value map of round summary data (e.g. crash-point). Excluded from signature calculation.
+
+    RoundInfoResponse:
+      type: object
+      required:
+        - result_code
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        message:
+          type: string
+          description: Descriptive error message. Present only when result_code is non-zero.
+
+    # ── Rollback Response ──
+    RollbackResponse:
+      type: object
+      required:
+        - result_code
+      properties:
+        result_code:
+          type: integer
+          description: "Result code. 0 = success (bet refunded), 1011 = bet not found, 1017 = bet already settled (has a win or round closed)."
+        message:
+          type: string
+          description: Descriptive error message. Present only when result_code is non-zero.
+        balance:
+          type: number
+          description: Player's balance after the rollback. Required on success (result_code = 0); optional on error.
+        currency:
+          type: string
+          description: Currency of the returned balance. Must match the request currency. Required on success; optional on error.
+        transaction_id:
+          type: string
+          description: Operator-assigned transaction identifier, used for reconciliation.
+
+    # ── Shared ──
+    WalletResponse:
+      type: object
+      required:
+        - result_code
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        message:
+          type: string
+          description: Descriptive error message. Present only when result_code is non-zero.
+        balance:
+          type: number
+          description: Player's balance after the request. Required on success (result_code = 0); optional on error.
+        currency:
+          type: string
+          description: Currency of the returned balance. Must match the request currency. Required on success; optional on error.
+
+    TransactionalWalletResponse:
+      type: object
+      required:
+        - result_code
+      properties:
+        result_code:
+          type: integer
+          description: Result code. 0 indicates success.
+        message:
+          type: string
+          description: Descriptive error message. Present only when result_code is non-zero.
+        balance:
+          type: number
+          description: Player's balance after the request. Required on success (result_code = 0); optional on error.
+        currency:
+          type: string
+          description: Currency of the returned balance. Must match the request currency. Required on success; optional on error.
+        transaction_id:
+          type: string
+          description: Operator-assigned transaction identifier, used for reconciliation.
+
+  responses:
+    BadRequest:
+      description: "Malformed request — server could not parse the JSON. No response body."
+    Forbidden:
+      description: "IP not whitelisted — request blocked at infrastructure level. No response body."
+    InternalError:
+      description: "Internal server error — retry with exponential backoff. No response body."
