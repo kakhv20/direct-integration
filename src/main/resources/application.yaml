@@ -4,6 +4,8 @@ spring:
 
 app:
   api-prefix: "/api"
+  security:
+    timestamp-plus-minus-boundary: 30
 
 springdoc:
   api-docs:

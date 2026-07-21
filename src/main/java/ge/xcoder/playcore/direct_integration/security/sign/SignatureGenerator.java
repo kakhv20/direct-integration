@@ -1,4 +1,4 @@
-package ge.xcoder.playcore.direct_integration.security;
+package ge.xcoder.playcore.direct_integration.security.sign;
 
 import ge.xcoder.playcore.direct_integration.exception.CurrencyNotSupportedException;
 import ge.xcoder.playcore.direct_integration.exception.HmacComputationException;

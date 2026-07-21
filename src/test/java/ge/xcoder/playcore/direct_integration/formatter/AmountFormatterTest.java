@@ -1,6 +1,5 @@
-package ge.xcoder.playcore.direct_integration;
+package ge.xcoder.playcore.direct_integration.formatter;
 
-import ge.xcoder.playcore.direct_integration.formatter.AmountFormatter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
