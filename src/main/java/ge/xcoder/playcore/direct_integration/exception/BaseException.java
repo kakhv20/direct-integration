@@ -6,7 +6,12 @@ public class BaseException extends RuntimeException {
     @Getter
     protected final Long errorCode;
 
-    public BaseException(String message, long errorCode) {
+    public BaseException(String message) {
+        super(message);
+        this.errorCode = null;
+    }
+
+    public BaseException(String message, Long errorCode) {
         super(message);
         this.errorCode = errorCode;
     }
@@ -16,7 +21,7 @@ public class BaseException extends RuntimeException {
         this.errorCode = null;
     }
 
-    public BaseException(String message, long errorCode, Throwable cause) {
+    public BaseException(String message, Long errorCode, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

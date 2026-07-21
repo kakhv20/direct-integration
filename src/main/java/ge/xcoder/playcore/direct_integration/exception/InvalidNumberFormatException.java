@@ -1,11 +1,15 @@
 package ge.xcoder.playcore.direct_integration.exception;
 
 public class InvalidNumberFormatException extends BaseException {
-    public InvalidNumberFormatException(String message, long errorCode) {
+    public InvalidNumberFormatException(String message) {
+        super(message);
+    }
+
+    public InvalidNumberFormatException(String message, Long errorCode) {
         super(message, errorCode);
     }
 
-    public InvalidNumberFormatException(String message, long errorCode, Throwable cause) {
+    public InvalidNumberFormatException(String message, Long errorCode, Throwable cause) {
         super(message, errorCode, cause);
     }
 }
