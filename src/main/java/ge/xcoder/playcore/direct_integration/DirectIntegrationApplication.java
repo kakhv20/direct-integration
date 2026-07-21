@@ -17,7 +17,7 @@ public class DirectIntegrationApplication {
 
     @Bean
     public TimestampValidator timestampValidator(
-            @Value("${app.security.timestamp-window-seconds:30}") int window) {
+            @Value("${app.security.timestamp-plus-minus-boundary:30}") int window) {
         Clock clock = Clock.systemDefaultZone(); // QUESTION: should this be configurable?
         return new TimestampValidator(clock, window);
     }
