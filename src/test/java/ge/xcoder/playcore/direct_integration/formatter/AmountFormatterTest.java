@@ -1,5 +1,6 @@
 package ge.xcoder.playcore.direct_integration.formatter;
 
+import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,9 +17,9 @@ class AmountFormatterTest {
 
     @Test
     void normalizeInvalidValues_shouldThrowException() {
-        Assertions.assertThrows(NumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck(".", 2));
-        Assertions.assertThrows(NumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck("abc", 2));
-        Assertions.assertThrows(NumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck(null, 2));
-        Assertions.assertThrows(NumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck("null", 2));
+        Assertions.assertThrows(InvalidNumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck(".", 2));
+        Assertions.assertThrows(InvalidNumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck("abc", 2));
+        Assertions.assertThrows(InvalidNumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck(null, 2));
+        Assertions.assertThrows(InvalidNumberFormatException.class, () -> AmountFormatter.normalizeForSignatureCheck("null", 2));
     }
 }

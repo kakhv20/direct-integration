@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.security.sign;
 
-import ge.xcoder.playcore.direct_integration.exception.CurrencyNotSupportedException;
-import ge.xcoder.playcore.direct_integration.exception.HmacComputationException;
+import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedException;
+import ge.xcoder.playcore.direct_integration.exception.security.HmacComputationException;
 import ge.xcoder.playcore.direct_integration.formatter.AmountFormatter;
 
 import javax.crypto.Mac;

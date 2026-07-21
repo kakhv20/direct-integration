@@ -1,6 +1,12 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
+import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowException;
+import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatException;
+import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -9,6 +15,16 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 
 class TimestampValidatorTest {
+    private static final int NOW_SECONDS = 1730379235;
+    private static final int WINDOW = 30;
+
+    private TimestampValidator validator;
+
+    @BeforeEach
+    void setUp() {
+        Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(NOW_SECONDS), ZoneOffset.UTC);
+        this.validator = new TimestampValidator(fixedClock, WINDOW);
+    }
 
     @ParameterizedTest(name = "{0}s from now → valid={1}")
     @CsvSource({
@@ -18,16 +34,32 @@ class TimestampValidatorTest {
             "-31, false",   // just outside, past
             " 31, false",   // just outside, future
     })
-    void isValidOnlyWithinDriftWindow(int offsetSeconds, boolean expected) {
-        int nowSeconds = 1730379235;
-        int window = 30;
-        Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(nowSeconds), ZoneOffset.UTC);
-        var validator = new TimestampValidator(fixedClock, window);
+    void withinDriftWindowPasses_outsideThrows(int offsetSeconds, boolean valid) {
+        Executable call = () -> validator.validate(String.valueOf(NOW_SECONDS + offsetSeconds));
 
-        Assertions.assertEquals(
-                expected,
-                validator.isValid(String.valueOf(nowSeconds + offsetSeconds)));
+        if (valid) {
+            Assertions.assertDoesNotThrow(call);
+        } else {
+            Assertions.assertThrows(TimestampOutOfWindowException.class, call);
+        }
     }
 
-    // TODO: test with a wrong format of the timestamp
+    @Test
+    void missingTimestamp_throwsMissingHeader() {
+        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate(null));
+        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate(""));
+        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate("  "));
+    }
+
+    @Test
+    void malformedTimestamp_throwsInvalidNumberFormat() {
+        Assertions.assertThrows(InvalidNumberFormatException.class, () -> validator.validate("abc"));
+    }
+
+    @Test
+    void overlongDigitsThatOverflowLong_throwsInvalidNumberFormat() {
+        // all digits, so it passes the \d+ check, but too large for a long
+        Assertions.assertThrows(InvalidNumberFormatException.class,
+                () -> validator.validate("99999999999999999999999"));
+    }
 }

@@ -1,6 +1,6 @@
 package ge.xcoder.playcore.direct_integration.security;
 
-import ge.xcoder.playcore.direct_integration.exception.CurrencyNotSupportedException;
+import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
 import org.junit.jupiter.api.Assertions;
