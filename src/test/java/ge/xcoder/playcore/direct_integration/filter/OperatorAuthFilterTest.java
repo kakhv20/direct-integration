@@ -3,11 +3,11 @@ package ge.xcoder.playcore.direct_integration.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ge.xcoder.playcore.direct_integration.InMemoryNonceStore;
-import ge.xcoder.playcore.direct_integration.exception.BaseException;
-import ge.xcoder.playcore.direct_integration.exception.RepeatedValueException;
-import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureException;
-import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
-import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowException;
+import ge.xcoder.playcore.direct_integration.exception.BaseUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.RepeatedValueUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowUncheckedException;
 import ge.xcoder.playcore.direct_integration.security.filter.OperatorAuthFilter;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
@@ -84,7 +84,7 @@ class OperatorAuthFilterTest {
     void noAuthHeaders_Reject() {
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -100,7 +100,7 @@ class OperatorAuthFilterTest {
 
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -117,7 +117,7 @@ class OperatorAuthFilterTest {
 
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -135,7 +135,7 @@ class OperatorAuthFilterTest {
 
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -166,7 +166,7 @@ class OperatorAuthFilterTest {
 
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(InvalidSignatureException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(InvalidSignatureUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -185,7 +185,7 @@ class OperatorAuthFilterTest {
 
         MockFilterChain filterChain = new MockFilterChain();
 
-        BaseException ex = Assertions.assertThrows(TimestampOutOfWindowException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(TimestampOutOfWindowUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), filterChain
         ));
 
@@ -209,7 +209,7 @@ class OperatorAuthFilterTest {
 
         Assertions.assertNotNull(firstFilterChain.getRequest());
 
-        BaseException ex = Assertions.assertThrows(RepeatedValueException.class, () -> authFilter.doFilter(
+        BaseUncheckedException ex = Assertions.assertThrows(RepeatedValueUncheckedException.class, () -> authFilter.doFilter(
                 request, new MockHttpServletResponse(), secondFilterChain
         ));
 

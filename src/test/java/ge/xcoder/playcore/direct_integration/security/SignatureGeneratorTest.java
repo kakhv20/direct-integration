@@ -1,6 +1,6 @@
 package ge.xcoder.playcore.direct_integration.security;
 
-import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedException;
+import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedUncheckedException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
 import org.junit.jupiter.api.Assertions;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 class SignatureGeneratorTest {
     /**
-     * Spec Example 1, step 2 output — the sorted query string. It is also step 3's input,
+     * Spec Example 1, step 2 output - the sorted query string. It is also step 3's input,
      * which is why it is a shared constant rather than an inline literal.
      */
     private static final String SPEC_QUERY_STRING =
@@ -24,7 +24,7 @@ class SignatureGeneratorTest {
                     + "&session_id=f47ac10b-58cc-4372-a567-0e02b2c3d479"
                     + "&user_id=1234";
     /**
-     * Spec Example 1, step 3 output — the URL-encoded string that gets HMAC'd.
+     * Spec Example 1, step 3 output - the URL-encoded string that gets HMAC'd.
      */
     private static final String SPEC_ENCODED_STRING =
             "X-Nonce%3Db7a9d3e0f4124b6f9c1a"
@@ -36,11 +36,11 @@ class SignatureGeneratorTest {
                     + "%26user_id%3D1234";
 
     /**
-     * Golden vector from the integration docs — Security > X-Sign Calculation, Example 1
+     * Golden vector from the integration docs - Security > X-Sign Calculation, Example 1
      * (balance request). Expected value is copied verbatim from the spec; do not "fix" it.
      * <p>
      * Note the X-* header keys sort BEFORE the lowercase body fields ('X' is 0x58, 'a' is
-     * 0x61). That only holds under ASCII/natural ordering — a case-insensitive comparator
+     * 0x61). That only holds under ASCII/natural ordering - a case-insensitive comparator
      * would put them last and every signature would mismatch.
      */
     @Test
@@ -59,11 +59,11 @@ class SignatureGeneratorTest {
     }
 
     /**
-     * Golden vector from the integration docs — Example 1, step 3. Fed the spec's own
+     * Golden vector from the integration docs - Example 1, step 3. Fed the spec's own
      * step-2 string rather than the output of {@code mapToStringSorted}, so a bug in the
      * sort cannot mask a bug in the encoder.
      * <p>
-     * The whole joined string is encoded as one unit — that is why '=' becomes %3D and
+     * The whole joined string is encoded as one unit - that is why '=' becomes %3D and
      * '&' becomes %26. It looks like a double-encoded query string; it is what the spec
      * requires.
      */
@@ -137,7 +137,7 @@ class SignatureGeneratorTest {
     @Test
     void objectMapToStringMap_shouldDropNullValuedFields() {
         // The aggregator excludes null fields from the signing string (confirmed with the
-        // account manager) — e.g. a null parent_transaction_id on a JACKPOT/CLOSE_ROUND win.
+        // account manager) - e.g. a null parent_transaction_id on a JACKPOT/CLOSE_ROUND win.
         final Map<String, Object> body = new HashMap<>();
         body.put("user_id", "1234");
         body.put("parent_transaction_id", null);
@@ -158,7 +158,7 @@ class SignatureGeneratorTest {
                 "session_id", "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                 "attributes", Map.of("test1", "test value1")
         );
-        Assertions.assertThrows(CurrencyNotSupportedException.class, () -> SignatureGenerator.objectMapToStringMap(body));
+        Assertions.assertThrows(CurrencyNotSupportedUncheckedException.class, () -> SignatureGenerator.objectMapToStringMap(body));
     }
 
     @Test
@@ -170,7 +170,7 @@ class SignatureGeneratorTest {
                 "session_id", "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                 "attributes", Map.of("test1", "test value1")
         );
-        Assertions.assertThrows(CurrencyNotSupportedException.class, () -> SignatureGenerator.objectMapToStringMap(body));
+        Assertions.assertThrows(CurrencyNotSupportedUncheckedException.class, () -> SignatureGenerator.objectMapToStringMap(body));
     }
 
     @Test
@@ -190,7 +190,7 @@ class SignatureGeneratorTest {
      * The body + headers are spec Example 1 (balance request), so the intermediate
      * URL-encoded string is exactly {@link #SPEC_ENCODED_STRING}. The expected digest was
      * computed independently with {@code openssl dgst -sha1 -hmac} over that string with
-     * the secret below (the docs give no final HMAC — the header table value is a
+     * the secret below (the docs give no final HMAC - the header table value is a
      * placeholder), and cross-checked against a standalone JDK Mac run.
      * <p>
      * {@code attributes} is included in the input specifically to prove it is dropped by

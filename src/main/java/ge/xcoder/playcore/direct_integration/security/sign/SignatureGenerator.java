@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.security.sign;
 
-import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedException;
-import ge.xcoder.playcore.direct_integration.exception.security.HmacComputationException;
+import ge.xcoder.playcore.direct_integration.exception.money.CurrencyNotSupportedUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.HmacComputationUncheckedException;
 import ge.xcoder.playcore.direct_integration.formatter.AmountFormatter;
 
 import javax.crypto.Mac;
@@ -51,7 +51,7 @@ public class SignatureGenerator {
      * remaining value, and normalizes {@code amount} to its currency's precision.
      * <p>
      * Null-valued fields (e.g. a null {@code parent_transaction_id} on a JACKPOT or
-     * CLOSE_ROUND win) are excluded from the signing string entirely — this matches the
+     * CLOSE_ROUND win) are excluded from the signing string entirely - this matches the
      * aggregator's own signing (confirmed with the account manager).
      */
     public static Map<String, String> objectMapToStringMap(Map<String, Object> unfilteredBodyFields) {
@@ -71,11 +71,11 @@ public class SignatureGenerator {
 
     private static int precisionFor(String currency) {
         if (currency == null) {
-            throw new CurrencyNotSupportedException("Currency is not specified");
+            throw new CurrencyNotSupportedUncheckedException("Currency is not specified");
         }
         return switch (currency) {
             case "USD", "EUR", "GEL" -> 2;
-            default -> throw new CurrencyNotSupportedException(currency + " is not supported");
+            default -> throw new CurrencyNotSupportedUncheckedException(currency + " is not supported");
         };
     }
 
@@ -87,7 +87,7 @@ public class SignatureGenerator {
             byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new HmacComputationException("Failed to compute HMAC signature", e);
+            throw new HmacComputationUncheckedException("Failed to compute HMAC signature", e);
         }
     }
 

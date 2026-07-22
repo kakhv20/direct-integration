@@ -2,26 +2,26 @@ package ge.xcoder.playcore.direct_integration.exception;
 
 import lombok.Getter;
 
-public class BaseException extends RuntimeException {
+public class BaseUncheckedException extends RuntimeException {
     @Getter
     protected final Long errorCode;
 
-    public BaseException(String message) {
+    public BaseUncheckedException(String message) {
         super(message);
         this.errorCode = null;
     }
 
-    public BaseException(String message, Long errorCode) {
+    public BaseUncheckedException(String message, Long errorCode) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    public BaseException(String message, Throwable e) {
+    public BaseUncheckedException(String message, Throwable e) {
         super(message, e);
         this.errorCode = null;
     }
 
-    public BaseException(String message, Long errorCode, Throwable cause) {
+    public BaseUncheckedException(String message, Long errorCode, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

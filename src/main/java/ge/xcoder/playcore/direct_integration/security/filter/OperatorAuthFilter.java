@@ -12,11 +12,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Map;
 
+@Component
+@Order(2)
 public class OperatorAuthFilter extends OncePerRequestFilter {
     private final OperatorIdValidator operatorIdValidator;
     private final TimestampValidator timestampValidator;

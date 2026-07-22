@@ -1,11 +1,15 @@
 spring:
   application:
     name: direct_integration
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
 app:
   api-prefix: "/api"
   security:
     timestamp-plus-minus-boundary: 30
+    operator-id: 1
+    secret: "secret"
 
 springdoc:
   api-docs:

@@ -1,8 +1,8 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatException;
-import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
-import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowException;
+import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowUncheckedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,8 +29,8 @@ class TimestampValidatorTest {
     @ParameterizedTest(name = "{0}s from now → valid={1}")
     @CsvSource({
             "  0, true",    // now
-            "-30, true",    // 30s in the past  — boundary, inclusive
-            " 30, true",    // 30s in the future — boundary, inclusive
+            "-30, true",    // 30s in the past  - boundary, inclusive
+            " 30, true",    // 30s in the future - boundary, inclusive
             "-31, false",   // just outside, past
             " 31, false",   // just outside, future
     })
@@ -40,26 +40,26 @@ class TimestampValidatorTest {
         if (valid) {
             Assertions.assertDoesNotThrow(call);
         } else {
-            Assertions.assertThrows(TimestampOutOfWindowException.class, call);
+            Assertions.assertThrows(TimestampOutOfWindowUncheckedException.class, call);
         }
     }
 
     @Test
     void missingTimestamp_throwsMissingHeader() {
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(null));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(""));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate("  "));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate(null));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate(""));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate("  "));
     }
 
     @Test
     void malformedTimestamp_throwsInvalidNumberFormat() {
-        Assertions.assertThrows(InvalidNumberFormatException.class, () -> validator.validate("abc"));
+        Assertions.assertThrows(InvalidNumberFormatUncheckedException.class, () -> validator.validate("abc"));
     }
 
     @Test
     void overlongDigitsThatOverflowLong_throwsInvalidNumberFormat() {
         // all digits, so it passes the \d+ check, but too large for a long
-        Assertions.assertThrows(InvalidNumberFormatException.class,
+        Assertions.assertThrows(InvalidNumberFormatUncheckedException.class,
                 () -> validator.validate("99999999999999999999999"));
     }
 }

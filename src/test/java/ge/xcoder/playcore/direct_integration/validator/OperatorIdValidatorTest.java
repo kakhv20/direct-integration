@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
-import ge.xcoder.playcore.direct_integration.exception.security.WrongOperatorException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.WrongOperatorUncheckedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,13 +22,13 @@ class OperatorIdValidatorTest {
 
     @Test
     void inputIncorrectId_fails() {
-        Assertions.assertThrows(WrongOperatorException.class, () -> validator.validate(VALID_ID + " "));
+        Assertions.assertThrows(WrongOperatorUncheckedException.class, () -> validator.validate(VALID_ID + " "));
     }
 
     @Test
     void inputEmptyValues_throwsException() {
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(null));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(""));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate("  "));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate(null));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate(""));
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class, () -> validator.validate("  "));
     }
 }

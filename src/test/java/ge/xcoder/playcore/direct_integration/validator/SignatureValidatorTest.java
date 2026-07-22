@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
-import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
+import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureUncheckedException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
 import org.junit.jupiter.api.Assertions;
@@ -39,7 +39,7 @@ class SignatureValidatorTest {
         String validSignature = SignatureGenerator.buildSignature(BODY, AUTH_HEADERS, SECRET);
         String tampered = flipLastChar(validSignature);
 
-        Assertions.assertThrows(InvalidSignatureException.class,
+        Assertions.assertThrows(InvalidSignatureUncheckedException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, tampered));
     }
 
@@ -48,17 +48,17 @@ class SignatureValidatorTest {
         // an attacker who does not hold our secret cannot forge a matching signature
         String forged = SignatureGenerator.buildSignature(BODY, AUTH_HEADERS, "not-the-real-secret");
 
-        Assertions.assertThrows(InvalidSignatureException.class,
+        Assertions.assertThrows(InvalidSignatureUncheckedException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, forged));
     }
 
     @Test
     void missingSignature_throwsMissingHeader() {
-        Assertions.assertThrows(MissingMandatoryHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, null));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, ""));
-        Assertions.assertThrows(MissingMandatoryHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderUncheckedException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, "   "));
     }
 
