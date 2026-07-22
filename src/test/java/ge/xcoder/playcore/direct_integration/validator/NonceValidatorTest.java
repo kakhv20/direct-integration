@@ -12,8 +12,9 @@ class NonceValidatorTest {
     void firstUseSucceeds_reuseThrows() {
         NonceValidator validator = new NonceValidator(new InMemoryNonceStore());
 
-        Assertions.assertDoesNotThrow(() -> validator.validate("nonce-abc"));
-        Assertions.assertThrows(RepeatedValueException.class, () -> validator.validate("nonce-abc"));
+        String nonce = "nonce-abc";
+        Assertions.assertDoesNotThrow(() -> validator.validate(nonce));
+        Assertions.assertThrows(RepeatedValueException.class, () -> validator.validate(nonce));
     }
 
     @Test
