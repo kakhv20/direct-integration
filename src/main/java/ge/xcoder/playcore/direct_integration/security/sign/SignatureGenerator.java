@@ -47,17 +47,17 @@ public class SignatureGenerator {
 
     /**
      * Renders a parsed request body into the flat {@code String -> String} map that feeds the
-     * signing string: drops {@code attributes}, stringifies every remaining value, and
-     * normalizes {@code amount} to its currency's precision.
+     * signing string: drops {@code attributes}, drops null-valued fields, stringifies every
+     * remaining value, and normalizes {@code amount} to its currency's precision.
      * <p>
-     * A null field value is rendered as the literal string {@code "null"} (via
-     * {@link String#valueOf}) — e.g. the null {@code parent_transaction_id} on a JACKPOT or
-     * CLOSE_ROUND win. OPEN QUESTION: the aggregator's own signing treatment of null fields
-     * is not specified; confirm with the account manager before go-live.
+     * Null-valued fields (e.g. a null {@code parent_transaction_id} on a JACKPOT or
+     * CLOSE_ROUND win) are excluded from the signing string entirely — this matches the
+     * aggregator's own signing (confirmed with the account manager).
      */
     public static Map<String, String> objectMapToStringMap(Map<String, Object> unfilteredBodyFields) {
         final Map<String, String> filteredBodyFields = unfilteredBodyFields.entrySet().stream()
                 .filter(entry -> !entry.getKey().equals("attributes"))
+                .filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> String.valueOf(entry.getValue())

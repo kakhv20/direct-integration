@@ -135,12 +135,15 @@ class SignatureGeneratorTest {
     }
 
     @Test
-    void objectMapToStringMap_shouldRenderNullValueAsStringNull() {
+    void objectMapToStringMap_shouldDropNullValuedFields() {
+        // The aggregator excludes null fields from the signing string (confirmed with the
+        // account manager) — e.g. a null parent_transaction_id on a JACKPOT/CLOSE_ROUND win.
         final Map<String, Object> body = new HashMap<>();
-        body.put("user_id", null);
+        body.put("user_id", "1234");
+        body.put("parent_transaction_id", null);
 
         final Map<String, String> expected = Map.of(
-                "user_id", "null"
+                "user_id", "1234"
         );
         Assertions.assertEquals(expected, SignatureGenerator.objectMapToStringMap(body));
     }
