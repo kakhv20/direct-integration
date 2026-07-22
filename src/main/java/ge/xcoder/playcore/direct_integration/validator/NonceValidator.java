@@ -2,7 +2,7 @@ package ge.xcoder.playcore.direct_integration.validator;
 
 import ge.xcoder.playcore.direct_integration.api.port.NonceStore;
 import ge.xcoder.playcore.direct_integration.exception.RepeatedValueException;
-import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
 
 public class NonceValidator {
@@ -14,7 +14,7 @@ public class NonceValidator {
 
     public void validate(String nonce) {
         if (nonce == null || nonce.isBlank()) {
-            throw new DomainMissingHeaderException("Missing nonce");
+            throw new MissingMandatoryHeaderException("Missing nonce");
         }
 
         if (!store.storeIfAbsent(nonce)) {

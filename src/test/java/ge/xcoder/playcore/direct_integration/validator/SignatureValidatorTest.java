@@ -1,6 +1,6 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
@@ -54,11 +54,11 @@ class SignatureValidatorTest {
 
     @Test
     void missingSignature_throwsMissingHeader() {
-        Assertions.assertThrows(DomainMissingHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, null));
-        Assertions.assertThrows(DomainMissingHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, ""));
-        Assertions.assertThrows(DomainMissingHeaderException.class,
+        Assertions.assertThrows(MissingMandatoryHeaderException.class,
                 () -> validator.validate(BODY, AUTH_HEADERS, "   "));
     }
 

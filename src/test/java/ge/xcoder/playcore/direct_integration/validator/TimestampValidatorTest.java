@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
 import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatException;
-import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,9 +46,9 @@ class TimestampValidatorTest {
 
     @Test
     void missingTimestamp_throwsMissingHeader() {
-        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate(null));
-        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate(""));
-        Assertions.assertThrows(DomainMissingHeaderException.class, () -> validator.validate("  "));
+        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(null));
+        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate(""));
+        Assertions.assertThrows(MissingMandatoryHeaderException.class, () -> validator.validate("  "));
     }
 
     @Test

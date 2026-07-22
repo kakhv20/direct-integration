@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
 import ge.xcoder.playcore.direct_integration.exception.InvalidNumberFormatException;
-import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowException;
 import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
 
@@ -24,7 +24,7 @@ public class TimestampValidator {
      */
     public void validate(String number) {
         if (number == null || number.isBlank()) {
-            throw new DomainMissingHeaderException("Missing timestamp");
+            throw new MissingMandatoryHeaderException("Missing timestamp");
         }
         if (!number.matches("\\d+")) {
             throw new InvalidNumberFormatException("Timestamp is not a number", ErrorCodes.INVALID_TIMESTAMP);

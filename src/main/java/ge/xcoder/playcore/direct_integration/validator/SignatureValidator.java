@@ -1,6 +1,6 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.security.DomainMissingHeaderException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 
@@ -20,7 +20,7 @@ public class SignatureValidator {
                          String providedSignature
     ) {
         if (providedSignature == null || providedSignature.isBlank()) {
-            throw new DomainMissingHeaderException("Missing signature");
+            throw new MissingMandatoryHeaderException("Missing signature");
         }
         String expected = SignatureGenerator.buildSignature(body, authHeaders, secret);
         // Constant-time comparison: MessageDigest.isEqual does not short-circuit on the
