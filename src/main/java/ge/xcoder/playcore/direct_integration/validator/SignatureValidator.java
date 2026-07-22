@@ -1,7 +1,7 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureException;
+import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderException;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
 
 import java.nio.charset.StandardCharsets;
@@ -9,6 +9,8 @@ import java.security.MessageDigest;
 import java.util.Map;
 
 public class SignatureValidator {
+    public static final String MISSING_HEADER_MESSAGE = "Missing signature";
+    public static final String INVALID_SIGNATURE = "Invalid signature";
     private final String secret;
 
     public SignatureValidator(String secret) {
@@ -20,7 +22,7 @@ public class SignatureValidator {
                          String providedSignature
     ) {
         if (providedSignature == null || providedSignature.isBlank()) {
-            throw new MissingMandatoryHeaderException("Missing signature");
+            throw new MissingMandatoryHeaderException(MISSING_HEADER_MESSAGE);
         }
         String expected = SignatureGenerator.buildSignature(body, authHeaders, secret);
         // Constant-time comparison: MessageDigest.isEqual does not short-circuit on the
@@ -36,7 +38,7 @@ public class SignatureValidator {
                 providedSignature.getBytes(StandardCharsets.UTF_8));
 
         if (!matches) {
-            throw new InvalidSignatureException("Invalid signature");
+            throw new InvalidSignatureException(INVALID_SIGNATURE);
         }
     }
 }

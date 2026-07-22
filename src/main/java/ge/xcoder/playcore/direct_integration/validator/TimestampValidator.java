@@ -8,6 +8,10 @@ import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
 import java.time.Clock;
 
 public class TimestampValidator {
+    public static final String MISSING_HEADER_MESSAGE = "Missing timestamp";
+    public static final String TIMESTAMP_IS_NOT_A_NUMBER = "Timestamp is not a number";
+    public static final String TIMESTAMP_IS_OUT_OF_RANGE = "Timestamp is out of range";
+    public static final String TIMESTAMP_IS_OUT_OF_VALID_TIMEFRAME = "Timestamp is out of valid timeframe";
     private final Clock clock;
     private final int plusMinusBoundary;
 
@@ -24,10 +28,10 @@ public class TimestampValidator {
      */
     public void validate(String number) {
         if (number == null || number.isBlank()) {
-            throw new MissingMandatoryHeaderException("Missing timestamp");
+            throw new MissingMandatoryHeaderException(MISSING_HEADER_MESSAGE);
         }
         if (!number.matches("\\d+")) {
-            throw new InvalidNumberFormatException("Timestamp is not a number", ErrorCodes.INVALID_TIMESTAMP);
+            throw new InvalidNumberFormatException(TIMESTAMP_IS_NOT_A_NUMBER, ErrorCodes.INVALID_TIMESTAMP);
         }
 
         long timestamp;
@@ -35,13 +39,13 @@ public class TimestampValidator {
             timestamp = Long.parseLong(number);
         } catch (NumberFormatException e) {
             // all-digits but too large to fit in a long
-            throw new InvalidNumberFormatException("Timestamp is out of range", ErrorCodes.INVALID_TIMESTAMP, e);
+            throw new InvalidNumberFormatException(TIMESTAMP_IS_OUT_OF_RANGE, ErrorCodes.INVALID_TIMESTAMP, e);
         }
 
         long now = clock.instant().getEpochSecond();
         long diff = now - timestamp;
         if (diff < -plusMinusBoundary || diff > plusMinusBoundary) {
-            throw new TimestampOutOfWindowException("Timestamp off by " + diff, ErrorCodes.INVALID_TIMESTAMP);
+            throw new TimestampOutOfWindowException(TIMESTAMP_IS_OUT_OF_VALID_TIMEFRAME, ErrorCodes.INVALID_TIMESTAMP);
         }
     }
 }

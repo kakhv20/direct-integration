@@ -4,6 +4,8 @@ import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatory
 import ge.xcoder.playcore.direct_integration.exception.security.WrongOperatorException;
 
 public class OperatorIdValidator {
+    public static final String MISSING_HEADER_MESSAGE = "Missing operatorId";
+    public static final String INVALID_OPERATOR = "Invalid operator";
     private final String operatorId;
 
     public OperatorIdValidator(String operatorId) {
@@ -12,9 +14,9 @@ public class OperatorIdValidator {
 
     public void validate(String id) {
         if (id == null || id.isBlank()) {
-            throw new MissingMandatoryHeaderException("Missing operator id");
+            throw new MissingMandatoryHeaderException(MISSING_HEADER_MESSAGE);
         } else if (!operatorId.equals(id)) {
-            throw new WrongOperatorException("Invalid operator");
+            throw new WrongOperatorException(INVALID_OPERATOR);
         }
     }
 }

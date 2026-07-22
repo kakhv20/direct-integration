@@ -6,6 +6,8 @@ import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatory
 import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
 
 public class NonceValidator {
+    public static final String MISSING_HEADER_MESSAGE = "Missing nonce";
+    public static final String NONCE_ALREADY_USED = "Nonce already used";
     private final NonceStore store;
 
     public NonceValidator(NonceStore store) {
@@ -14,11 +16,11 @@ public class NonceValidator {
 
     public void validate(String nonce) {
         if (nonce == null || nonce.isBlank()) {
-            throw new MissingMandatoryHeaderException("Missing nonce");
+            throw new MissingMandatoryHeaderException(MISSING_HEADER_MESSAGE);
         }
 
         if (!store.storeIfAbsent(nonce)) {
-            throw new RepeatedValueException("Nonce already used", ErrorCodes.INVALID_NONCE);
+            throw new RepeatedValueException(NONCE_ALREADY_USED, ErrorCodes.INVALID_NONCE);
         }
     }
 }
