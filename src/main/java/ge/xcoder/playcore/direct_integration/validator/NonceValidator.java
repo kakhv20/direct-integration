@@ -3,7 +3,7 @@ package ge.xcoder.playcore.direct_integration.validator;
 import ge.xcoder.playcore.direct_integration.api.port.NonceStore;
 import ge.xcoder.playcore.direct_integration.exception.RepeatedValueUncheckedException;
 import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
-import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
+import ge.xcoder.playcore.direct_integration.util.ResultCodes;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class NonceValidator {
         }
 
         if (!store.storeIfAbsent(nonce, ttl)) {
-            throw new RepeatedValueUncheckedException(NONCE_ALREADY_USED, ErrorCodes.INVALID_NONCE);
+            throw new RepeatedValueUncheckedException(NONCE_ALREADY_USED, ResultCodes.INVALID_NONCE);
         }
     }
 }

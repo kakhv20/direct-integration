@@ -2,7 +2,7 @@ package ge.xcoder.playcore.direct_integration.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ge.xcoder.playcore.direct_integration.InMemoryNonceStore;
+import ge.xcoder.playcore.direct_integration.zhelper.InMemoryNonceStore;
 import ge.xcoder.playcore.direct_integration.exception.BaseUncheckedException;
 import ge.xcoder.playcore.direct_integration.exception.RepeatedValueUncheckedException;
 import ge.xcoder.playcore.direct_integration.exception.security.InvalidSignatureUncheckedException;
@@ -10,7 +10,7 @@ import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatory
 import ge.xcoder.playcore.direct_integration.exception.security.TimestampOutOfWindowUncheckedException;
 import ge.xcoder.playcore.direct_integration.security.filter.OperatorAuthFilter;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
-import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
+import ge.xcoder.playcore.direct_integration.util.ResultCodes;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
 import ge.xcoder.playcore.direct_integration.validator.NonceValidator;
 import ge.xcoder.playcore.direct_integration.validator.OperatorIdValidator;
@@ -88,7 +88,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.MISSING_HEADER, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.MISSING_HEADER, ex.getErrorCode());
         Assertions.assertEquals(OperatorIdValidator.MISSING_HEADER_MESSAGE, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -104,7 +104,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.MISSING_HEADER, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.MISSING_HEADER, ex.getErrorCode());
         Assertions.assertEquals(TimestampValidator.MISSING_HEADER_MESSAGE, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -121,7 +121,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.MISSING_HEADER, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.MISSING_HEADER, ex.getErrorCode());
         Assertions.assertEquals(NonceValidator.MISSING_HEADER_MESSAGE, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -139,7 +139,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.MISSING_HEADER, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.MISSING_HEADER, ex.getErrorCode());
         Assertions.assertEquals(SignatureValidator.MISSING_HEADER_MESSAGE, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -170,7 +170,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.INVALID_SIGNATURE, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.INVALID_SIGNATURE, ex.getErrorCode());
         Assertions.assertEquals(SignatureValidator.INVALID_SIGNATURE, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -189,7 +189,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), filterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.INVALID_TIMESTAMP, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.INVALID_TIMESTAMP, ex.getErrorCode());
         Assertions.assertEquals(TimestampValidator.TIMESTAMP_IS_OUT_OF_VALID_TIMEFRAME, ex.getMessage());
 
         Assertions.assertNull(filterChain.getRequest());
@@ -213,7 +213,7 @@ class OperatorAuthFilterTest {
                 request, new MockHttpServletResponse(), secondFilterChain
         ));
 
-        Assertions.assertEquals(ErrorCodes.INVALID_NONCE, ex.getErrorCode());
+        Assertions.assertEquals(ResultCodes.INVALID_NONCE, ex.getErrorCode());
         Assertions.assertEquals(NonceValidator.NONCE_ALREADY_USED, ex.getMessage());
 
         Assertions.assertNull(secondFilterChain.getRequest());

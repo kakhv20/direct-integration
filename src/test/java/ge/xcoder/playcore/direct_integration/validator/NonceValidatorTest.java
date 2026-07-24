@@ -1,6 +1,6 @@
 package ge.xcoder.playcore.direct_integration.validator;
 
-import ge.xcoder.playcore.direct_integration.InMemoryNonceStore;
+import ge.xcoder.playcore.direct_integration.zhelper.InMemoryNonceStore;
 import ge.xcoder.playcore.direct_integration.exception.RepeatedValueUncheckedException;
 import ge.xcoder.playcore.direct_integration.exception.security.MissingMandatoryHeaderUncheckedException;
 import org.junit.jupiter.api.Assertions;

@@ -2,9 +2,9 @@ package ge.xcoder.playcore.direct_integration.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ge.xcoder.playcore.direct_integration.GeneralTestData;
+import ge.xcoder.playcore.direct_integration.zhelper.GeneralTestData;
 import ge.xcoder.playcore.direct_integration.security.sign.SignatureGenerator;
-import ge.xcoder.playcore.direct_integration.util.ErrorCodes;
+import ge.xcoder.playcore.direct_integration.util.ResultCodes;
 import ge.xcoder.playcore.direct_integration.util.constants.HeaderNames;
 import ge.xcoder.playcore.direct_integration.validator.NonceValidator;
 import ge.xcoder.playcore.direct_integration.validator.OperatorIdValidator;
@@ -52,7 +52,7 @@ class ExceptionHandlerFilterTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"user_id\":\"1234\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.MISSING_HEADER))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.MISSING_HEADER))
                 .andExpect(jsonPath("$.message").value(OperatorIdValidator.MISSING_HEADER_MESSAGE));
     }
 
@@ -79,7 +79,7 @@ class ExceptionHandlerFilterTest {
                         .content(bodyJson())
                         .header(HeaderNames.X_OPERATOR_ID, GeneralTestData.OPERATOR_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.MISSING_HEADER))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.MISSING_HEADER))
                 .andExpect(jsonPath("$.message").value(TimestampValidator.MISSING_HEADER_MESSAGE));
     }
 
@@ -91,7 +91,7 @@ class ExceptionHandlerFilterTest {
                         .header(HeaderNames.X_OPERATOR_ID, GeneralTestData.OPERATOR_ID)
                         .header(HeaderNames.X_TIMESTAMP, String.valueOf(GeneralTestData.NOW)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.MISSING_HEADER))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.MISSING_HEADER))
                 .andExpect(jsonPath("$.message").value(NonceValidator.MISSING_HEADER_MESSAGE));
     }
 
@@ -104,7 +104,7 @@ class ExceptionHandlerFilterTest {
                         .header(HeaderNames.X_TIMESTAMP, String.valueOf(GeneralTestData.NOW))
                         .header(HeaderNames.X_NONCE, "nonce-missing-sig"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.MISSING_HEADER))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.MISSING_HEADER))
                 .andExpect(jsonPath("$.message").value(SignatureValidator.MISSING_HEADER_MESSAGE));
     }
 
@@ -118,7 +118,7 @@ class ExceptionHandlerFilterTest {
                         .header(HeaderNames.X_NONCE, "nonce-invalid-sig")
                         .header(HeaderNames.X_SIGN, "INVALID"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.INVALID_SIGNATURE))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.INVALID_SIGNATURE))
                 .andExpect(jsonPath("$.message").value(SignatureValidator.INVALID_SIGNATURE));
     }
 
@@ -131,7 +131,7 @@ class ExceptionHandlerFilterTest {
                         .header(HeaderNames.X_OPERATOR_ID, GeneralTestData.OPERATOR_ID)
                         .header(HeaderNames.X_TIMESTAMP, String.valueOf(stale)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.INVALID_TIMESTAMP))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.INVALID_TIMESTAMP))
                 .andExpect(jsonPath("$.message").value(TimestampValidator.TIMESTAMP_IS_OUT_OF_VALID_TIMEFRAME));
     }
 
@@ -159,7 +159,7 @@ class ExceptionHandlerFilterTest {
                         .header(HeaderNames.X_NONCE, nonce)
                         .header(HeaderNames.X_SIGN, sign))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result_code").value(ErrorCodes.INVALID_NONCE))
+                .andExpect(jsonPath("$.result_code").value(ResultCodes.INVALID_NONCE))
                 .andExpect(jsonPath("$.message").value(NonceValidator.NONCE_ALREADY_USED));
     }
 }

@@ -1,4 +1,4 @@
-package ge.xcoder.playcore.direct_integration;
+package ge.xcoder.playcore.direct_integration.zhelper;
 
 import ge.xcoder.playcore.direct_integration.validator.NonceValidator;
 import ge.xcoder.playcore.direct_integration.validator.OperatorIdValidator;
