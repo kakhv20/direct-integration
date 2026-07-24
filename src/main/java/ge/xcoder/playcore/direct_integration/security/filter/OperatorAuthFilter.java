@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -42,17 +43,30 @@ public class OperatorAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * check operatorId -> check timestamp -> check nonce -> check signature
+     * Authenticates a single operator request before it is allowed to reach the controller.
+     * <p>
+     * The request is first wrapped in a {@link CachedBodyHttpServletRequest} so its body can be
+     * read more than once - here, to recompute the signature over the raw bytes, and again
+     * downstream by the controller. A raw servlet input stream is single-use, so without this the
+     * controller would receive an empty body.
+     * <p>
+     * The checks run in a fixed order: operatorId, timestamp and nonce (header presence and
+     * validity) first, then the signature last, since it recomputes the HMAC over the body plus
+     * those same headers. Each validator throws a {@code BaseUncheckedException} on failure, and
+     * those are intentionally <b>not</b> caught here: they propagate to the
+     * {@link ExceptionHandlerFilter} (ordered ahead of this filter), which turns them into an
+     * HTTP 200 response carrying the business {@code result_code}. When every check passes, the
+     * cached request is forwarded down the chain.
      *
-     * @param request
-     * @param response
-     * @param filterChain
-     * @throws ServletException
-     * @throws IOException
+     * @param request     the incoming request; wrapped so its body survives re-reading
+     * @param response    the response, passed through untouched on the success path
+     * @param filterChain the rest of the chain, invoked only once all checks pass
+     * @throws ServletException if a downstream filter or servlet raises it
+     * @throws IOException      if reading the request body fails
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
                                     FilterChain filterChain
     ) throws ServletException, IOException {
         CachedBodyHttpServletRequest cached = new CachedBodyHttpServletRequest(request);

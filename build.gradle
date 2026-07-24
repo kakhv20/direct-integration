@@ -6,6 +6,9 @@ plugins {
 
 ext {
     springCloudVersion = "2025.0.2"
+    // CVE-2025-48924: Spring Boot's BOM pins commons-lang3 to a vulnerable 3.17.0 and forces every
+    // transitive copy down to it. Override the managed version to the patched 3.18.0 (API-compatible).
+    set('commons-lang3.version', '3.18.0')
 }
 
 group = 'ge.xcoder.playcore'
