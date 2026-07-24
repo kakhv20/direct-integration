@@ -56,7 +56,7 @@ class OperatorAuthFilterTest {
         authFilter = new OperatorAuthFilter(
                 new OperatorIdValidator(OPERATOR_ID),
                 new TimestampValidator(Clock.fixed(Instant.ofEpochSecond(NOW_SECONDS), ZoneOffset.UTC), TIMESTAMP_PLUS_MINUS_BORDER),
-                new NonceValidator(new InMemoryNonceStore()),
+                new NonceValidator(new InMemoryNonceStore(), 30),
                 new SignatureValidator(SECRET),
                 new ObjectMapper()
         );

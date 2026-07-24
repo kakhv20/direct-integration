@@ -8,6 +8,7 @@ app:
   api-prefix: "/api"
   security:
     timestamp-plus-minus-boundary: 30
+    nonce-ttl: 30
     operator-id: 1
     secret: "secret"
 

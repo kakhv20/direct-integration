@@ -40,7 +40,7 @@ public class GeneralTestData {
 
     @Bean
     public NonceValidator nonceValidator() {
-        return new NonceValidator(new InMemoryNonceStore());
+        return new NonceValidator(new InMemoryNonceStore(), 30);
     }
 
     @Bean
